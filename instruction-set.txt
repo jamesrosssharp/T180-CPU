@@ -1,0 +1,304 @@
+Instruction set based on Viktor Toth's 4 bit microcontroller
+
+[control-lines]
+HALT		halt CPU 							0x00
+LIR 		load instruction register					0x01
+LAL 		load accumulator low byte					0x02
+LAH  		load accumulator high byte					0x03
+LDL 		load DA low byte						0x04
+LDH 		load DA high byte						0x05
+SAL  		store accumulator low byte					0x06
+SAH 		store accumulator high byte					0x07
+SPL 		store PC low byte		[--remove this one]		0x08
+SPH  		store PC high byte		[--remove this one]		0x09
+LPC  		load PC from DA							0x0a
+PCC 		load PC from DA if carry clear					0x0b
+PCD  		load PC from DA if data clear [--remove this one]		0x0c
+PCZ 		load PC if zero clear						0x0d
+AND		and alu op							0x0e
+OR  		or alu op							0x0f
+ADD  		add alu op							0x10
+SUB  		sub alu op							0x11
+CMP 		cmp alu op							0x12
+ROL  		rol alu op							0x13
+ROR 		ror alu op							0x14
+CLF 		clear flags							0x15
+LSPL 		load stack pointer low						0x16
+LSPH 		load stack pointer high						0x17
+SSPAL		store accumulator low byte at [sp++]				0x18
+SSPAH 		store accumulator high byte at [sp++]				0x19
+DECSP		decrement stack pointer						0x1a
+LASPH		load accumulator high byte from [sp--]				0x1b
+LASPL		load accumulator low byte from [sp]				0x1c
+SSPCL		store PC low byte at [sp++]					0x1d
+SSPCH		store PC high byte at [sp++]					0x1e
+LSPDH		load DA high byte from [sp--]					0x1f
+LSPDL		load DA low byte from [sp]					0x20
+INCA		increment the accumulator					0x21
+DECA		decrement the accumulator					0x22
+XOR		XOR DA with accumulator						0x23
+LAIL		load [pc++] to accumulator low byte				0x25
+LAIH		load [pc++] to accumulator high byte				0x26
+ADC		add with carry DA and accumulator				0x27
+SBB		subtract with borrow DA from accumulator			0x28
+LD2L		load DA2 low byte from [pc++]					0x29
+LD2H		load DA2 high byte from [pc++]					0x2a
+LDD2L		load DA low byte from [DA2++]					0x2b
+LDD2H		load DA high byte from [DA2++]					0x2c
+LBL		load B low byte from [da++]					0x2d
+LBH		load B high byte from [da++]					0x2e
+MOVAB		move accumulator to b register					0x2f
+MOVBA		move b register to accumulator					0x30
+SBL		store b register low byte to [da++]				0x31
+SBH		store b register high byte to [da++]				0x32
+LBIL		load b register low byte from [pc++]				0x33
+LBIH		load b register high byte from [pc++]				0x34
+LCL		load C low byte from [da++]					0x35
+LCH		load C high byte from [da++]					0x36
+MOVAC		move accumulator to C register					0x37
+MOVCA		move C register to accumulator					0x38
+SCL		store C register low byte to [da++]				0x39
+SCH		store C register high byte to [da++]				0x3a
+LCIL		load C register low byte from [pc++]				0x3b
+LCIH		load C register high byte from [pc++]				0x3c
+LDDL		load d low byte from [da++]					0x3d
+LDDH		load d high byte from [da++]					0x3e
+MOVAD		move accumulator to d register					0x3f
+MOVDA		move d register to accumulator					0x40
+SDL		store d register low byte to [da++]				0x41
+SDH		store d register high byte to [da++]				0x42
+LDIL		load d register low byte from [pc++]				0x43
+LDIH		load d register high byte from [pc++]				0x44
+SSPBL		store B register low byte at [sp++]				0x45
+SSPBH		store B register high byte at [sp++]				0x46
+LBSPH		load [sp--] to B register high byte				0x47
+LBSPL		load [sp] to B register low byte				0x48
+INCB		increment b register						0x49
+DECB		decrement b register						0x4a
+SSPCCL		store C register low byte at [sp++]				0x4b
+SSPCCH		store C register high byte at [sp++]				0x4c
+LCSPH		load [sp--] to C register high byte				0x4d
+LCSPL		load [sp] to C register low byte				0x4e
+INCC		increment C register						0x4f
+DECC		decrement C register						0x50
+SSPDL		store D register low byte at [sp++]				0x51
+SSPDH		store D register high byte at [sp++]				0x52
+LDSPH		load [sp--] to D register high byte				0x53
+LDSPL		load [sp] to D register low byte				0x54
+INCD		increment C register						0x55
+DECD		decrement C register						0x56
+LDABDA		load DA register from effective address b			0x57
+LDABDA2		load DA2 register from effective address b			0x58
+LDABOPDA	load DA register from B + DA + Carry				0x59
+LDABOPDA2	load DA2 register from B + DA + Carry				0x5a
+LD2DL		load DA2 register low from [DA++]				0x5b
+LD2DH		load DA2 register high from [DA]				0x5c
+LDACDA		load DA register from effective address c			0x5d
+LDACDA2		load DA2 register from effective address c			0x5e
+LDACOPDA	load DA register from C + DA + Carry				0x5f
+LDACOPDA2	load DA2 register from C + DA + Carry				0x60
+LDADDA		load DA register from effective address D			0x61
+LDADDA2		load DA2 register from effective address D			0x62
+LDADOPDA	load DA register from D + DA + Carry				0x63
+LDADOPDA2	load DA2 register from D + DA + Carry				0x64
+
+
+[instructions]	
+HLT	HALT,LIR			Halt CPU --NB change this to NOP			0x00
+LDA	LDL,LDH,LAL,LAH,LIR		Load accumulator from absolute address (operand)	0x01
+STA	LDL,LDH,SAL,SAH,LIR		Store accumulator at absolute address (operand)		0x02
+JMP	LDL,LDH,LPC,LIR			Jump to address						0x03
+SPC	LDL,LDH,SPL,SPH,LIR		Store PC --NB remove this instruction			0x04
+ANDI	LDL,LDH,AND,LIR			And immediate with accumulator				0x05
+ORI	LDL,LDH,OR,LIR			Or immediate with accumulator				0x06
+ADDI	LDL,LDH,ADD,LIR			Add with carry immediate with accumulator		0x07
+SUBI	LDL,LDH,SUB,LIR			Sub immediate from accumulator				0x08
+JNZ	LDL,LDH,PCZ,LIR			Jump non-zero						0x09
+CMPI	LDL,LDH,CMP,LIR			Compare instruction					0x0a
+JND	LDL,LDH,PCD,LIR			Jump no data -- NB remove this instruction		0x0b
+JNC	LDL,LDH,PCC,LIR			Jump no carry						0x0c
+ROL	ROL,LIR				Rotate left through carry				0x0d
+ROR	ROR,LIR				Rotate right through carry				0x0e
+CLF	CLF,LIR				Clear flags						0x0f
+LDSP	LSPL,LSPH,LIR			Load stack pointer					0x10
+PUSHA	SSPAL,SSPAH,LIR			Push accumulator onto stack				0x11
+POPA	DECSP,LASPH,LASPL,LIR		pop accumulator off stack				0x12
+CALL	LDL,LDH,SSPCL,SSPCH,LPC,LIR	call subroutine						0x13
+RET	DECSP,LSPDH,LSPDL,LPC,LIR	return from subroutine					0x14
+INCA	INCA,LIR			increment accumulator					0x15
+DECA	DECA,LIR			decrement accumulator					0x16
+XORI	LDL,LDH,XOR,LIR			XOR immediate with accumulator				0x17
+LDAI	LAIL,LAIH,LIR			load immediate into accumulator				0x18
+ADCI	LDL,LDH,ADC,LIR			add with carry immediate				0x19
+SBBI	LDL,LDH,SBB,LIR			subtract with borrow					0x1a
+AND	LD2L,LD2H,LDD2L,LDD2H,AND,LIR	and with absolute memory address			0x1b
+OR	LD2L,LD2H,LDD2L,LDD2H,OR,LIR	or with absolute memory address				0x1c
+ADD	LD2L,LD2H,LDD2L,LDD2H,ADD,LIR	add with absolute memory address			0x1d
+ADC	LD2L,LD2H,LDD2L,LDD2H,ADC,LIR	add with carry from absolute memory address		0x1e
+SUB	LD2L,LD2H,LDD2L,LDD2H,SUB,LIR	subtract from absolute memory address			0x1f
+SBB	LD2L,LD2H,LDD2L,LDD2H,SBB,LIR	subtract with borrow absolute memory address		0x20
+CMP	LD2L,LD2H,LDD2L,LDD2H,CMP,LIR	compare with absolute memory address			0x21
+XOR	LD2L,LD2H,LDD2L,LDD2H,XOR,LIR	compare with absolute memory address			0x22
+LDB	LDL,LDH,LBL,LBH,LIR		load b register from absolute address			0x23
+MOVAB	MOVAB,LIR			move accumulator to b register				0x24
+MOVBA	MOVBA,LIR			move b register to accumulator				0x25
+STB	LDL,LDH,SBL,SBH,LIR		store b register at absolute address			0x26
+LDBI	LBIL,LBIH,LIR			load b register address with immediate value		0x27
+LDC	LDL,LDH,LCL,LCH,LIR		load c register from absolute address			0x28
+MOVAC	MOVAC,LIR			move accumulator to c register				0x29
+MOVCA	MOVCA,LIR			move c register to accumulator				0x2a
+STC	LDL,LDH,SCL,SCH,LIR		store c register at absolute address			0x2b
+LDCI	LCIL,LCIH,LIR			load c register address with immediate value		0x2c
+LDD	LDL,LDH,LDDL,LDDH,LIR		load d register from absolute address			0x2d
+MOVAD	MOVAD,LIR			move accumulator to d register				0x2e
+MOVDA	MOVDA,LIR			move d register to accumulator				0x2f
+STD	LDL,LDH,SDL,SDH,LIR		store d register at absolute address			0x30
+LDDI	LDIL,LDIH,LIR			load d register address with immediate value		0x31
+PUSHB	SSPBL,SSPBH,LIR			push b register onto the stack				0x32
+POPB	DECSP,LBSPH,LBSPL,LIR		pop b register from the stack				0x33
+INCB	INCB,LIR			increment B register					0x34
+DECB	DECB,LIR			decrement B register					0x35
+PUSHC	SSPCL,SSPCH,LIR			push C register onto the stack				0x36
+POPC	DECSP,LCSPH,LCSPL,LIR		pop C register from the stack				0x37
+INCC	INCC,LIR			increment C register					0x38
+DECC	DECC,LIR			decrement C register					0x39
+PUSHD	SSPDL,SSPDH,LIR			push D register onto the stack				0x3a
+POPD	DECSP,LDSPH,LDSPL,LIR		pop D register from the stack				0x3b
+INCD	INCD,LIR			increment D register					0x3c
+DECD	DECD,LIR			decrement D register					0x3d
+LDAB	LDABDA,LAL,LAH,LIR		LDA b load accumulator with effective address pointed to by b	0x3e
+STAB	LDABDA,SAL,SAH,LIR		STA b store accumulator to effective address pointed to by b	0x3f
+ANDB	LDABDA2,LDD2L,LDD2H,AND,LIR	AND b	and with effective address pointed to by b		0x40
+ORB	LDABDA2,LDD2L,LDD2H,OR,LIR	OR b	or with effective address pointed to by b		0x41
+ADDB	LDABDA2,LDD2L,LDD2H,ADD,LIR	ADD b	add with effective address pointed to by b		0x42
+ADCB	LDABDA2,LDD2L,LDD2H,ADC,LIR	ADC b	add with carry with effective address pointed to by b	0x43
+SUBB	LDABDA2,LDD2L,LDD2H,SUB,LIR	SUB b	subtract effective address pointed to by b		0x44
+SBBB	LDABDA2,LDD2L,LDD2H,SBB,LIR	SBB b	subtract effective address pointed to by b		0x45
+CMPB	LDABDA2,LDD2L,LDD2H,CMP,LIR	CMP b	compare with effective address pointed to by b		0x46
+XORB	LDABDA2,LDD2L,LDD2H,XOR,LIR	XOR b	XOR with effective address pointed to by b		0x47
+LDABOP	LDL,LDH,LDABOPDA,LAL,LAH,LIR	load accumulator with effective address pointed to by b + op + C			0x48
+STABOP	LDL,LDH,LDABOPDA,SAL,SAH,LIR	store accumulator to effective address pointed to by b + op + C				0x49
+ANDBOP	LDL,LDH,LDABOPDA2,LDD2L,LDD2H,AND,LIR		AND b,op	and with effective address pointed to by b + op + C			0x4a
+ORBOP	LDL,LDH,LDABOPDA2,LDD2L,LDD2H,OR,LIR		OR b,op		or with effective address pointed to by b + op + C			0x4b
+ADDBOP	LDL,LDH,LDABOPDA2,LDD2L,LDD2H,ADD,LIR		ADD b,op	add with effective address pointed to by b + op + C			0x4c
+ADCBOP	LDL,LDH,LDABOPDA2,LDD2L,LDD2H,ADC,LIR		ADC b,op	add with carry with effective address pointed to by b + op + C		0x4d
+SUBBOP	LDL,LDH,LDABOPDA2,LDD2L,LDD2H,SUB,LIR		SUB b,op	subtract effective address pointed to by b + op + C			0x4e
+SBBBOP	LDL,LDH,LDABOPDA2,LDD2L,LDD2H,SBB,LIR		SBB b,op	subtract effective address pointed to by b + op + C			0x4f
+CMPBOP	LDL,LDH,LDABOPDA2,LDD2L,LDD2H,CMP,LIR		CMP b,op	compare with effective address pointed to by b + op + C			0x50
+XORBOP	LDL,LDH,LDABOPDA2,LDD2L,LDD2H,XOR,LIR		XOR b,op	XOR with effective address pointed to by b + op + C			0x51
+LDABOP2	LDL,LDH,LDABOPDA2,LDD2L,LDD2H,LAL,LAH,LIR	LDA [b,op] 	load accumulator with indirect address at b + op + C	0x52
+STABOP2	LDL,LDH,LDABOPDA2,LDD2L,LDD2H,SAL,SAH,LIR	STA [b,op] 	store accumulator to indirect address to by b + op + C	0x53
+ANDBOP2	LDL,LDH,LDABOPDA,LD2DL,LD2DH,LDD2L,LDD2H,AND,LIR	AND [b,op]	and with indirect address b + op + C			0x54
+ORBOP2	LDL,LDH,LDABOPDA,LD2DL,LD2DH,LDD2L,LDD2H,OR,LIR		OR [b,op]	or with indirect address b + op + C			0x55
+ADDBOP2	LDL,LDH,LDABOPDA,LD2DL,LD2DH,LDD2L,LDD2H,ADD,LIR	ADD [b,op]	add with indirect address b + op + C			0x56
+ADCBOP2	LDL,LDH,LDABOPDA,LD2DL,LD2DH,LDD2L,LDD2H,ADC,LIR	ADC [b,op]	add with carry with indirect address b + op + C		0x57
+SUBBOP2	LDL,LDH,LDABOPDA,LD2DL,LD2DH,LDD2L,LDD2H,SUB,LIR	SUB [b,op]	subtract indirect address b + op + C			0x58
+SBBBOP2	LDL,LDH,LDABOPDA,LD2DL,LD2DH,LDD2L,LDD2H,SBB,LIR	SBB [b,op]	subtract indirect address b + op + C			0x59
+CMPBOP2	LDL,LDH,LDABOPDA,LD2DL,LD2DH,LDD2L,LDD2H,CMP,LIR	CMP [b,op]	compare with indirect address b + op + C		0x5a
+XORBOP2	LDL,LDH,LDABOPDA,LD2DL,LD2DH,LDD2L,LDD2H,XOR,LIR	XOR [b,op]	XOR with indirect address b + op + C			0x5b
+LDABOP3 LD2L,LD2H,LDD2L,LDD2H,LDABOPDA,LAL,LAH,LIR		LDA [op],b 	load accumulator with effective address pointed to by b + [op] + C	0x5c
+STABOP3 LD2L,LD2H,LDD2L,LDD2H,LDABOPDA,SAL,SAH,LIR		STA [op],b 	store accumulator with effective address pointed to by b + [op] + C	0x5d
+ANDBOP3	LD2L,LD2H,LDD2L,LDD2H,LDABOPDA2,LDD2L,LDD2H,AND,LIR	AND [op],b	and with effective address pointed to by b + [op] + C			0x5e
+ORBOP3	LD2L,LD2H,LDD2L,LDD2H,LDABOPDA2,LDD2L,LDD2H,OR,LIR	OR [op],b	or with effective address pointed to by b + [op] + C			0x5f
+ADDBOP3	LD2L,LD2H,LDD2L,LDD2H,LDABOPDA2,LDD2L,LDD2H,ADD,LIR	ADD [op],b	add with effective address pointed to by b + [op] + C			0x60
+ADCBOP3	LD2L,LD2H,LDD2L,LDD2H,LDABOPDA2,LDD2L,LDD2H,ADC,LIR	ADC [op],b	add with carry with effective address pointed to by b + [op] + C	0x61
+SUBBOP3	LD2L,LD2H,LDD2L,LDD2H,LDABOPDA2,LDD2L,LDD2H,SUB,LIR	SUB [op],b	subtract effective address pointed to by b + [op] + C			0x62
+SBBBOP3	LD2L,LD2H,LDD2L,LDD2H,LDABOPDA2,LDD2L,LDD2H,SBB,LIR	SBB [op],b	subtract effective address pointed to by b + [op] + C			0x63
+CMPBOP3	LD2L,LD2H,LDD2L,LDD2H,LDABOPDA2,LDD2L,LDD2H,CMP,LIR	CMP [op],b	compare with effective address pointed to by b + [op] + C		0x64
+XORBOP3	LD2L,LD2H,LDD2L,LDD2H,LDABOPDA2,LDD2L,LDD2H,XOR,LIR	XOR [op],b	XOR with effective address pointed to by b + [op] + C			0x65
+LDAC	LDACDA,LAL,LAH,LIR		LDA c load accumulator with effective address pointed to by c	0x66
+STAC	LDACDA,SAL,SAH,LIR		STA c store accumulator to effective address pointed to by c	0x67
+ANDC	LDACDA2,LDD2L,LDD2H,AND,LIR	AND c	and with effective address pointed to by c		0x68
+ORC	LDACDA2,LDD2L,LDD2H,OR,LIR	OR c	or with effective address pointed to by c		0x69
+ADDC	LDACDA2,LDD2L,LDD2H,ADD,LIR	ADD c	add with effective address pointed to by c		0x6a
+ADCC	LDACDA2,LDD2L,LDD2H,ADC,LIR	ADC c	add with carry with effective address pointed to by c	0x6b
+SUBC	LDACDA2,LDD2L,LDD2H,SUB,LIR	SUB c	subtract effective address pointed to by c		0x6c
+SBBC	LDACDA2,LDD2L,LDD2H,SBB,LIR	SBB c	subtract effective address pointed to by c		0x6d
+CMPC	LDACDA2,LDD2L,LDD2H,CMP,LIR	CMP c	compare with effective address pointed to by c		0x6e
+XORC	LDACDA2,LDD2L,LDD2H,XOR,LIR	XOR c	XOR with effective address pointed to by c		0x6f
+LDACOP	LDL,LDH,LDACOPDA,LAL,LAH,LIR	load accumulator with effective address pointed to by c + op + C			0x70
+STACOP	LDL,LDH,LDACOPDA,SAL,SAH,LIR	store accumulator to effective address pointed to by c + op + C				0x71
+ANDCOP	LDL,LDH,LDACOPDA2,LDD2L,LDD2H,AND,LIR		AND c,op	and with effective address pointed to by c + op + C			0x72
+ORCOP	LDL,LDH,LDACOPDA2,LDD2L,LDD2H,OR,LIR		OR c,op		or with effective address pointed to by c + op + C			0x73
+ADDCOP	LDL,LDH,LDACOPDA2,LDD2L,LDD2H,ADD,LIR		ADD c,op	add with effective address pointed to by c + op + C			0x74
+ADCCOP	LDL,LDH,LDACOPDA2,LDD2L,LDD2H,ADC,LIR		ADC c,op	add with carry with effective address pointed to by c + op + C		0x75
+SUBCOP	LDL,LDH,LDACOPDA2,LDD2L,LDD2H,SUB,LIR		SUB c,op	subtract effective address pointed to by c + op + C			0x76
+SBBCOP	LDL,LDH,LDACOPDA2,LDD2L,LDD2H,SBB,LIR		SBB c,op	subtract effective address pointed to by c + op + C			0x77
+CMPCOP	LDL,LDH,LDACOPDA2,LDD2L,LDD2H,CMP,LIR		CMP c,op	compare with effective address pointed to by c + op + C			0x78
+XORCOP	LDL,LDH,LDACOPDA2,LDD2L,LDD2H,XOR,LIR		XOR c,op	XOR with effective address pointed to by c + op + C			0x79
+LDACOP2	LDL,LDH,LDACOPDA2,LDD2L,LDD2H,LAL,LAH,LIR	LDA [c,op] 	load accumulator with indirect address at c + op + C	0x7a
+STACOP2	LDL,LDH,LDACOPDA2,LDD2L,LDD2H,SAL,SAH,LIR	STA [c,op] 	store accumulator to indirect address to by c + op + C	0x7b
+ANDCOP2	LDL,LDH,LDACOPDA,LD2DL,LD2DH,LDD2L,LDD2H,AND,LIR	AND [c,op]	and with indirect address c + op + C			0x7c
+ORCOP2	LDL,LDH,LDACOPDA,LD2DL,LD2DH,LDD2L,LDD2H,OR,LIR		OR [c,op]	or with indirect address c + op + C			0x7d
+ADDCOP2	LDL,LDH,LDACOPDA,LD2DL,LD2DH,LDD2L,LDD2H,ADD,LIR	ADD [c,op]	add with indirect address c + op + C			0x7e
+ADCCOP2	LDL,LDH,LDACOPDA,LD2DL,LD2DH,LDD2L,LDD2H,ADC,LIR	ADC [c,op]	add with carry with indirect address c + op + C		0x7f
+SUBCOP2	LDL,LDH,LDACOPDA,LD2DL,LD2DH,LDD2L,LDD2H,SUB,LIR	SUB [c,op]	subtract indirect address c + op + C			0x80
+SBBCOP2	LDL,LDH,LDACOPDA,LD2DL,LD2DH,LDD2L,LDD2H,SBB,LIR	SBB [c,op]	subtract indirect address c + op + C			0x81
+CMPCOP2	LDL,LDH,LDACOPDA,LD2DL,LD2DH,LDD2L,LDD2H,CMP,LIR	CMP [c,op]	compare with indirect address c + op + C		0x82
+XORCOP2	LDL,LDH,LDACOPDA,LD2DL,LD2DH,LDD2L,LDD2H,XOR,LIR	XOR [c,op]	XOR with indirect address c + op + C			0x83
+LDACOP3 LD2L,LD2H,LDD2L,LDD2H,LDACOPDA,LAL,LAH,LIR		LDA [op],c 	load accumulator with effective address pointed to by c + [op] + C	0x84
+STACOP3 LD2L,LD2H,LDD2L,LDD2H,LDACOPDA,SAL,SAH,LIR		STA [op],c 	store accumulator with effective address pointed to by c + [op] + C	0x85
+ANDCOP3	LD2L,LD2H,LDD2L,LDD2H,LDACOPDA2,LDD2L,LDD2H,AND,LIR	AND [op],c	and with effective address pointed to by c + [op] + C			0x86
+ORCOP3	LD2L,LD2H,LDD2L,LDD2H,LDACOPDA2,LDD2L,LDD2H,OR,LIR	OR [op],c	or with effective address pointed to by c + [op] + C			0x87
+ADDCOP3	LD2L,LD2H,LDD2L,LDD2H,LDACOPDA2,LDD2L,LDD2H,ADD,LIR	ADD [op],c	add with effective address pointed to by c + [op] + C			0x88
+ADCCOP3	LD2L,LD2H,LDD2L,LDD2H,LDACOPDA2,LDD2L,LDD2H,ADC,LIR	ADC [op],c	add with carry with effective address pointed to by c + [op] + C	0x89
+SUBCOP3	LD2L,LD2H,LDD2L,LDD2H,LDACOPDA2,LDD2L,LDD2H,SUB,LIR	SUB [op],c	subtract effective address pointed to by c + [op] + C			0x8a
+SBBCOP3	LD2L,LD2H,LDD2L,LDD2H,LDACOPDA2,LDD2L,LDD2H,SBB,LIR	SBB [op],c	subtract effective address pointed to by c + [op] + C			0x8b
+CMPCOP3	LD2L,LD2H,LDD2L,LDD2H,LDACOPDA2,LDD2L,LDD2H,CMP,LIR	CMP [op],c	compare with effective address pointed to by c + [op] + C		0x8c
+XORCOP3	LD2L,LD2H,LDD2L,LDD2H,LDACOPDA2,LDD2L,LDD2H,XOR,LIR	XOR [op],c	XOR with effective address pointed to by c + [op] + C			0x8d
+LDAD	LDADDA,LAL,LAH,LIR		LDA d load accumulator with effective address pointed to by d	0x8e
+STAD	LDADDA,SAL,SAH,LIR		STA d store accumulator to effective address pointed to by d	0x8f
+ANDD	LDADDA2,LDD2L,LDD2H,AND,LIR	AND d	and with effective address pointed to by d		0x90
+ORD	LDADDA2,LDD2L,LDD2H,OR,LIR	OR d	or with effective address pointed to by d		0x91
+ADDD	LDADDA2,LDD2L,LDD2H,ADD,LIR	ADD d	add with effective address pointed to by d		0x92
+ADCD	LDADDA2,LDD2L,LDD2H,ADC,LIR	ADC d	add with carry with effective address pointed to by d	0x93
+SUBD	LDADDA2,LDD2L,LDD2H,SUB,LIR	SUB d	subtract effective address pointed to by d		0x94
+SBBD	LDADDA2,LDD2L,LDD2H,SBB,LIR	SBB d	subtract effective address pointed to by d		0x95
+CMPD	LDADDA2,LDD2L,LDD2H,CMP,LIR	CMP d	compare with effective address pointed to by d		0x96
+XORD	LDADDA2,LDD2L,LDD2H,XOR,LIR	XOR d	XOR with effective address pointed to by d		0x97
+LDADOP	LDL,LDH,LDADOPDA,LAL,LAH,LIR	load accumulator with effective address pointed to by d + op + C			0x98
+STADOP	LDL,LDH,LDADOPDA,SAL,SAH,LIR	store accumulator to effective address pointed to by d + op + C				0x99
+ANDDOP	LDL,LDH,LDADOPDA2,LDD2L,LDD2H,AND,LIR		AND d,op	and with effective address pointed to by d + op + C			0x9a
+ORDOP	LDL,LDH,LDADOPDA2,LDD2L,LDD2H,OR,LIR		OR d,op		or with effective address pointed to by d + op + C			0x9b
+ADDDOP	LDL,LDH,LDADOPDA2,LDD2L,LDD2H,ADD,LIR		ADD d,op	add with effective address pointed to by d + op + C			0x9c
+ADCDOP	LDL,LDH,LDADOPDA2,LDD2L,LDD2H,ADC,LIR		ADC d,op	add with carry with effective address pointed to by d + op + C		0x9d
+SUBDOP	LDL,LDH,LDADOPDA2,LDD2L,LDD2H,SUB,LIR		SUB d,op	subtract effective address pointed to by d + op + C			0x9e
+SBBDOP	LDL,LDH,LDADOPDA2,LDD2L,LDD2H,SBB,LIR		SBB d,op	subtract effective address pointed to by d + op + C			0x9f
+CMPDOP	LDL,LDH,LDADOPDA2,LDD2L,LDD2H,CMP,LIR		CMP d,op	compare with effective address pointed to by d + op + C			0xa0
+XORDOP	LDL,LDH,LDADOPDA2,LDD2L,LDD2H,XOR,LIR		XOR d,op	XOR with effective address pointed to by d + op + C			0xa1
+LDADOP2	LDL,LDH,LDADOPDA2,LDD2L,LDD2H,LAL,LAH,LIR	LDA [d,op] 	load accumulator with indirect address at d + op + C	0xa2
+STADOP2	LDL,LDH,LDADOPDA2,LDD2L,LDD2H,SAL,SAH,LIR	STA [d,op] 	store accumulator to indirect address to by d + op + C	0xa3
+ANDDOP2	LDL,LDH,LDADOPDA,LD2DL,LD2DH,LDD2L,LDD2H,AND,LIR	AND [d,op]	and with indirect address d + op + C			0xa4
+ORDOP2	LDL,LDH,LDADOPDA,LD2DL,LD2DH,LDD2L,LDD2H,OR,LIR		OR [d,op]	or with indirect address d + op + C			0xa5
+ADDDOP2	LDL,LDH,LDADOPDA,LD2DL,LD2DH,LDD2L,LDD2H,ADD,LIR	ADD [d,op]	add with indirect address d + op + C			0xa6
+ADCDOP2	LDL,LDH,LDADOPDA,LD2DL,LD2DH,LDD2L,LDD2H,ADC,LIR	ADC [d,op]	add with carry with indirect address d + op + C		0xa7
+SUBDOP2	LDL,LDH,LDADOPDA,LD2DL,LD2DH,LDD2L,LDD2H,SUB,LIR	SUB [d,op]	subtract indirect address d + op + C			0xa8
+SBBDOP2	LDL,LDH,LDADOPDA,LD2DL,LD2DH,LDD2L,LDD2H,SBB,LIR	SBB [d,op]	subtract indirect address d + op + C			0xa9
+CMPDOP2	LDL,LDH,LDADOPDA,LD2DL,LD2DH,LDD2L,LDD2H,CMP,LIR	CMP [d,op]	compare with indirect address d + op + C		0xaa
+XORDOP2	LDL,LDH,LDADOPDA,LD2DL,LD2DH,LDD2L,LDD2H,XOR,LIR	XOR [d,op]	XOR with indirect address d + op + C			0xab
+LDADOP3 LD2L,LD2H,LDD2L,LDD2H,LDADOPDA,LAL,LAH,LIR		LDA [op],d 	load accumulator with effective address pointed to by d + [op] + C	0xac
+STADOP3 LD2L,LD2H,LDD2L,LDD2H,LDADOPDA,SAL,SAH,LIR		STA [op],d 	store accumulator with effective address pointed to by d + [op] + C	0xad
+ANDDOP3	LD2L,LD2H,LDD2L,LDD2H,LDADOPDA2,LDD2L,LDD2H,AND,LIR	AND [op],d	and with effective address pointed to by d + [op] + C			0xae
+ORDOP3	LD2L,LD2H,LDD2L,LDD2H,LDADOPDA2,LDD2L,LDD2H,OR,LIR	OR [op],d	or with effective address pointed to by d + [op] + C			0xaf
+ADDDOP3	LD2L,LD2H,LDD2L,LDD2H,LDADOPDA2,LDD2L,LDD2H,ADD,LIR	ADD [op],d	add with effective address pointed to by d + [op] + C			0xb0
+ADCDOP3	LD2L,LD2H,LDD2L,LDD2H,LDADOPDA2,LDD2L,LDD2H,ADC,LIR	ADC [op],d	add with carry with effective address pointed to by d + [op] + C	0xb1
+SUBDOP3	LD2L,LD2H,LDD2L,LDD2H,LDADOPDA2,LDD2L,LDD2H,SUB,LIR	SUB [op],d	subtract effective address pointed to by d + [op] + C			0xb2
+SBBDOP3	LD2L,LD2H,LDD2L,LDD2H,LDADOPDA2,LDD2L,LDD2H,SBB,LIR	SBB [op],d	subtract effective address pointed to by d + [op] + C			0xb3
+CMPDOP3	LD2L,LD2H,LDD2L,LDD2H,LDADOPDA2,LDD2L,LDD2H,CMP,LIR	CMP [op],d	compare with effective address pointed to by d + [op] + C		0xb4
+XORDOP3	LD2L,LD2H,LDD2L,LDD2H,LDADOPDA2,LDD2L,LDD2H,XOR,LIR	XOR [op],d	XOR with effective address pointed to by d + [op] + C			0xb5
+
+
+
+[comments]
+To add:
+
+- status register
+- Interrupts
+- Bit test instructions?
+- Shift instructions?
+- Branches?
+- CMPB, CMPC, CMPD?
+
+
+Might want to consider extension to 24 bit address space with bank registers for PC and addressing modes to create 24 bit addresses using B,C and D registers.
+
